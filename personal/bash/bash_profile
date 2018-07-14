@@ -128,7 +128,6 @@ function include
     done
 }
 include $PHOME/bin
-source  $PHOME/work/bash_profile
 
 ################################################################################
 #                                 Colors                                       #
