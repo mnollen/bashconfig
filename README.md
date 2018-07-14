@@ -3,8 +3,8 @@
 The intent of this scripts are for personal use.
 
 ## Bash profile
-  This script has functions created by internet contributions modified, other friends and myself. 
-  The purpose is to complement other work scripts to simplify usage
+  This script has functions created by internet contributions, friends and myself. 
+  The purpose is to complement other work scripts
 
 ## Macro_script
   The purpose of this script is to record the comands that contain 0 in their return code.
