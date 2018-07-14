@@ -83,7 +83,7 @@ function mstart        { MSTART="record";
                            mkdir -p $MPATH; chmod -R 755 $MPATH;
                            echo "created filepath"
                            touch $MFILE;
-                           chmod -R 755 $MFILE;
+                           chmod 755 $MFILE;
                          fi
 		         truncate -s 0 $MFILE;
                          echo "#!${0} -i" > $MFILE;
