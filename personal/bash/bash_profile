@@ -1,0 +1,619 @@
+#!/bin/bash
+ # 
+# NAME
+#  bash_profile - .bashrc
+#
+# AUTHOR
+#  Nollen
+
+# Note: Not all exports, aliases or funtions are my creation
+#       PHOST and PUSER require to be set to a static value
+
+################################################################################
+#                            NON-INTERACTIVE / MPI                             #
+################################################################################
+
+[ -z "$PS1" ] && return
+
+if ! tty -s
+then
+    UNAME=$(uname)
+    case $UNAME in 
+        Linux|linux)
+            ulimit -c unlimited
+            RELF=""
+            if [[ -f /etc/redhat-release ]]; then
+                RELF=/etc/redhat-release
+            elif [[ -f /etc/SuSE-release ]]; then
+                RELF=/etc/SuSE-release
+            else
+                return 0;
+            fi
+            REL=$(rpm -qf $RELF)
+            if [[ $REL == *release-5* ]]; then
+                . /etc/profile.d/mpi-selector.sh
+            elif [[ $REL == *release-6* ]]; then
+                PATH=/usr/lib64/openmpi/bin:$PATH
+            fi
+            ;;
+        Sun*)
+            PATH=/opt/SUNWhpc/HPC8.2/sun/bin:$PATH
+            ;;
+        AIX*)
+
+            ;;
+        *)
+            ;;
+    esac
+    return 0
+fi
+[[ ${-#*i}  = ${-} ]] && return  # exit early
+
+################################################################################
+#                              HOST SPECIFIC                                   #
+################################################################################
+
+# The following 2 lines facilitate calling the same bash config
+# even when changing user, make sure this are defined previously
+if [ -z ${PUSER+x} ]; then
+  echo "defining user"
+  PUSER=$USER;
+fi
+if [ -z ${PHOST+x} ]; then
+  echo "defining hostname"
+  PHOST=$HOSTNAME;
+fi
+export PHOME="/home/${PUSER}"
+
+UNAME=`       uname -a`
+KERNEL=`      uname -r`
+KERNELSHRT=`  uname -r | sed "s/.x86_64//" | sed -E "s/.bug.+//"`
+HOSTNAME=`    uname -n`
+OSTYPE=`      uname` 
+OS=`          uname -s` 
+EXIT='        $?'
+
+# Figure out the current OS
+if [[ $OSTYPE == *SunOS* ]] ; then
+  if [[ `uname -a | awk '{print $6}'` == "sparc" ]] ; then    
+    os="solsparc"
+    osshrt="sol"
+  else
+    os="solaris"
+    osshrt="sol"
+  fi
+elif [[ $OSTYPE == *CYGWIN* ]] ; then
+  os="windows"
+  osshrt="win"
+elif [[ $OSTYPE == *Linux* ]] ; then
+  if [[ `uname -a | awk '{print $6}'` == "Sun" ]] ; then    
+    os="los"
+    osshrt="lin"
+  else
+    os="linux"
+    osshrt="lin"
+  fi
+elif [[ $OSTYPE == *AIX* ]] ; then
+  os="aix"
+  osshrt="aix"
+fi   
+
+################################################################################
+#                             Personal Host Settings                           #
+################################################################################
+
+if [ "$HOSTNAME" = "$PHOST" ]; then
+
+  # Aliases
+  alias emac='  emacs -nw'
+  alias vim='   emacs -nw'
+  alias e='     emacs'
+  alias ebash=' emacs ${PHOME}/personal/bash/bash_profile'
+  alias cscope='/usr/bin/cscope'
+
+  # Exports
+  export EDITOR='emacs -nw'
+
+else
+
+  export EDITOR=vim
+fi
+
+# Source all necesary files
+function include
+{
+    for file in $(find "$1" -name "*.sh")
+    do
+        source $file;
+    done
+}
+include $PHOME/bin
+source  $PHOME/work/bash_profile
+
+################################################################################
+#                                 Colors                                       #
+################################################################################
+
+# Text support 
+# Color support
+tReset="$(tput sgr0     )"
+tBold="$(tput bold      )"
+tBlack="$(tput setaf 0  )"
+tRed="$(tput setaf 1    )"
+tGreen="$(tput setaf 2  )"
+tYellow="$(tput setaf 3 )"
+tBlue="$(tput setaf 4   )"
+tPink="$(tput setaf 5   )"
+tCyan="$(tput setaf 6   )"
+tGray="$(tput setaf 7   )"
+tWhite="$(tput setaf 8  )"
+TUNON="$(tput smul      )"
+TUNOFF="$(tput rmul     )"
+bld="$tBold"
+n="${tReset}"
+b="${tBlue}"
+B="${bld}${b}"
+r="${tRed}"
+R="${bld}${r}"
+g="${tGreen}" 
+G="${bld}${g}" 
+y="${tYellow}"
+Y="${bld}${y}"
+# colors for awk
+blue="\033[1;34m"
+red="\033[1;31m"
+green="\033[1;32m"
+norm="\033[0m"
+
+GREP_OPTS='-s '
+LS_OPTS=''
+DIR_OPTS=''
+
+case "$OS" in
+    "SunOS" ) 
+        # Solaris ls doesn't allow color, so use special characters
+        LS_OPTS='-F'
+        alias  ls='ls ${LS_OPTS}'
+        ;;
+    "Linux" )
+        # GNU ls supports colors!
+        # See dircolors to customize colorsi
+        if [ -x /usr/bin/dircolors ]; then
+          export TERM=xterm-color
+          export CLICOLOR=1
+	  #rs=0:di=01;34:ln=01;36:mh=00:pi=01;34
+          
+          # ls
+          export LS_COLORS='di=1;34:ln=32:so=30:pi=30:ex=31:bd=30;47:cd=30:su=31:sg=31:tw=34:ow=34'
+          export LS_OPTS+='--color=auto' 
+
+          # less
+          export LESS="--RAW-CONTROL-CHARS"
+
+          # less, man, etc.
+          [[ -f ~/.LESS_TERMCAP ]] && . ~/.LESS_TERMCAP
+
+          # Use colors for grep
+          export GREP_OPTS+='--color=auto' GREP_COLOR='0;36'
+
+          # dir
+          export DIR_OPTS+='--color=auto'
+        fi
+        ;;
+    "Darwin"|"FreeBSD")
+        # Most FreeBSD & Apple Darwin supports colors
+        export CLICOLOR=true
+        # Get color support for 'less'
+        export LESS="--RAW-CONTROL-CHARS"
+
+        # Use colors for less, man, etc.
+        [[ -f ~/.LESS_TERMCAP ]] && . ~/.LESS_TERMCAP
+
+        export GREP_OPTS+='--color=auto' GREP_COLOR='0;36'
+        ;;
+esac
+
+################################################################################
+#                            Vars, Exports and Aliases                         #
+################################################################################
+
+#-------------------------------- Variables------------------------------------#
+
+# work specific
+WORKDIR=$PHOME/work
+if [ -d $WORKDIR ]; then
+    source $PHOME/work/bash_profile
+else
+    WPROXY=''
+fi
+
+#-------------------------------- Exports -------------------------------------#
+export PROMPT_COMMAND=__prompt 
+export TEST_VIEW=1
+export HISTCONTROL=erasedups
+export HISTSIZE=1000000
+export HISTFILESIZE=2000000
+export DEV_MACHINE="$PERSONALHOST"
+
+#-------------------------------- Aliases -------------------------------------#
+alias ..='        cd ../'
+alias ...='       cd ../../'
+alias ....='      cd ../../../'
+alias cdftrace='  cd /sys/kernel/debug/tracing'
+alias g='         cd -'
+
+alias lstd='      ls | grep dif'
+alias lstrd='     ls -R | grep dif'
+alias lsts='      ls | grep suc'
+alias lstrs='     ls -R | grep suc'
+alias lstds='     ls | grep -e dif -e suc'
+alias lstrds='    ls -R | grep -e dif -e suc'
+alias lsdev='     ls -l /dev/xvd*'
+
+alias pu='        pushd > /dev/null 2>&1'
+alias po='        popd  > /dev/null 2>&1'
+alias findn='     find . -name '
+alias ssh='       ssh -Y '
+alias sb='        source $PHOME/.bash_profile'
+alias fstab='     /etc/fstab'
+alias mkdir='     mkdir -p'
+alias yum='       yum -y'
+alias dmesg='     dmesg -H'
+alias mozilla='   xdg-open '
+
+alias python3='   /opt/Python-3.6.3/bin/python3.6 '
+alias pip3='      /opt/Python-3.6.3/bin/python3.6 -m pip '
+alias flask='     /opt/Python-3.6.3/bin/flask'
+
+alias gstat='     git status'
+alias gdif='      git diff'
+alias glog='      git log'
+alias gpo='       git pull'
+alias gpu='       git push'
+
+shopt -s histappend
+echo $DISPLAY > $PHOME/.display
+
+################################################################################
+#                                 Functions                                    #
+################################################################################
+
+function __prompt()    { EXIT="$?"
+    title_set  
+    timer_stop
+    ps1_set
+    # Print DONE on title after a long process run
+    if [ ${runtime} -ge 180 ]; then
+	# TO-DO Avoid printing DONE for some cmds
+        # emacs, vim, gdb, crash, tail
+                           title_done
+                         fi
+                         #MACRO ~mnollen/personal/macro
+			 bmacro
+                       }
+function expath        { if [[ $PATH != *":/sbin:/usr/sbin:/usr/bin"* ]]; then
+                            export PATH=${PATH}:/sbin:/usr/sbin:/usr/bin; 
+                         fi                        
+                       }
+expath
+
+function title_done()  { if [ -n "$STY" ] ; then         # We are in gnu screen
+                           printf "\033kDONE\033\\"
+                         else
+                           echo -ne "\033]0; DONE \007";
+                         fi 
+                       } #Change title after 3min+ task
+function title_set     { local HSTART="${HOSTNAME:0:1}"; #First char from host
+                         local HEND=$((${#HOSTNAME}-1));
+			 HEND="${HOSTNAME:$HEND:1}"      # Last char from host
+			 local PROJ="${PROJNAME:7}"
+                         PROJ="${PROJ: -4}"; 
+                         local OSSHRT="${os:0:1}";       # First char from OS
+                         if [ -n "$STY" ] ; then         # We are in gnu screen
+                           printf "\033k${OSSHRT}${HSTART}${HEND} ${PROJ}\033\\"
+                         else
+                           echo -ne "\033]0;${OSSHRT}${HSTART}${HEND} ${PROJ}\007"; 
+                         fi
+                       }
+function timer_start() { if [ -z ${timer_s+x} ]; then
+                           timer_s=`date +%s`
+                         fi 
+                       }
+trap 'timer_start' DEBUG
+function timer_stop()  { timer_end=`date +%s`
+                         runtime=$((timer_end-timer_s))
+                         unset timer_s
+                         unset timer_end
+                       }
+# Screen functions not working
+function sc_enable()   { rr chmod u+s $(which screen)
+                         rr chmod 755 /var/run/screen
+                         rr rm -rf /var/run/screen/*
+                       }
+function sc_share()    { screen -d -m -S shared
+                         screen -r shared
+                         CTRL-a :multiuser on
+                         CTRL-a :acladd $*
+                       }
+function sc_addusr()   { CTRL-a :acladd $*
+                       }
+function sc()          { screen -A -h 10000 -S $1 && export DISPLAY=$(cat ${PHOME}/.display)
+                       }
+# End of screen functions
+function exists        { [[ -f $1 ]]; }
+function nfs           { rr /sbin/service nfs start; }
+
+function ps1_set() 
+{
+    if [ $EXIT != 0 ]; then
+        # Change color to red and display exit code
+        PS1="\[\e[0;31m\][\d*\t] [${EXIT}]\[\e[0m\]\[\e[00;37m\]"
+    else
+        # Yellow for success no exit code
+        PS1="\[\e[00;33m\][\d*\t]\[\e[0m\]\[\e[00;37m\]"
+    fi
+    PS1+=" \[\e[0m\]\[\e[00;32m\]\w\[\e[0m\]\[\e[00;37m\]\n\[\e[0m\]\[\e[00;36m\]"
+    PS1+="[\u@\h]\[\e[0m\]\[\e[01;36m\]\\$ \[\e[0m\]"
+}
+
+# Open file name in sub path
+function of()
+{ 
+  for file in $(find . -name "*${*}*" )
+  do
+    if [[ "$file" =~ "bin" ]]; then continue; fi;
+    if [[ "$file" =~ "dist" ]]; then continue; fi;
+    if [[ "$file" =~ "install" ]]; then continue; fi;
+    if [[ "$file" =~ "osds" ]]; then
+      if [[ "$file" =~ "$osshrt" ]]; then
+        $EDITOR "$file"; break;
+      fi
+    else
+      $EDITOR "$file"; break;
+    fi
+  done
+}
+
+# Open file located in HOME
+function ofh()   { pu $PHOME; of $*; po; }
+
+# Check available work storage
+function check_space()
+{
+  du -s /scratch/*/view_storage/* 2> /dev/null;
+}
+
+# Extract compressed items easily
+function extract () 
+{
+  [ ! $1 ] && { printf "Error: must specify a filename to extract\n"; return; }
+  case $1 in
+    *.tar.bz2)   tar -xjf $1    ;;
+    *.tar.gz)    tar -xzf $1    ;;
+    *.bz2)       bunzip2  $1    ;;
+    *.rar)       rar -x   $1    ;;
+    *.gz)        gunzip   $1    ;;
+    *.tar)       tar -xf  $1    ;;
+    *.tbz2)      tar -xjf $1    ;;
+    *.tgz)       tar -xzf $1    ;;
+    *.zip)       unzip    $1    ;;
+    *.Z)         uncompress $1  ;;
+    *.7z)        7z -x    $1    ;;
+    *)           echo "'$1' cannot be extracted via extract()" ;;
+  esac
+}
+
+# Note: the following functions are not of my creation just added modifications
+# list aliases, expand if passed an alias name
+function list_alias    { [ $1 ] && alias $1 && return;                        \
+                         alias | sed 's/=.*//' | sed 's/alias //' |           \
+                         xargs printf "%-18s%-18s%-18s%-18s\n";               \
+                       }
+# list defined functions, expand if passed a function name
+function list_func     { [ $1 ] && declare -f $1 && return;                   \
+                         declare -F | cut -d" " -f3 |                         \
+                         xargs printf "%-20s%-20s%-20s%-20s\n";               \
+                       }
+
+#Ask user yes or no question: Returns 1=yes, 0=no
+function promptUser()
+{
+  local prompt=$1;
+  [ ${#prompt} -eq 0 ] && printf "promptUser <prompt>\n" && return;
+  while true; do
+    read -p "${R}${prompt}${n}" yn
+    case $yn in
+      [Yy]*) return 1;;
+      [Nn]*) return 0;;
+        *  ) printf "Please answer yes or no.\n";;
+    esac
+  done
+}
+
+# Creates a self extracting tar ball.  The tar file consists
+# of a directory and all of its files.  The one argument is
+# the name of the directory.
+function grabit
+{
+  dir=$1 # input directory or file
+  file=/tmp/extract.`echo $dir | sed 's/://g'` # output file
+  [ ! $dir ] && printf "${r}Error: must specify a directory$w\n" && return 1;
+  [ ! -e $dir ] && printf "${r}Error: $dir doesn't exist$w\n" && return 1;
+
+  tar hpczvf $file.tar.gz $dir
+  status=$?
+  [ $status -ne 0 ] && printf "${r}Error: tar error status=$status$w\n" && return 1;
+  cat << EOF > $file
+#!/bin/bash
+dir=`echo "\$0" | sed s.extract..`
+[ -e $dir ] && printf "Error: $dir already exists\n" && exit 1;
+sed -e '1,/^exit$/d' "\$0" | tar -zxvf -
+exit
+EOF
+  cat $file.tar.gz >> $file
+  rm -f $file.tar.gz
+  chmod 777 $file
+  printf "\nRun $y$file$n to extract the directory\n\n"
+}
+
+function export_proxy() 
+{
+  # Proxy is defined in another sourced file
+  export PROXY=$WPROXY
+  export https_proxy=${PROXY}
+  export http_proxy=${PROXY}
+  export HTTP_PROXY=${PROXY}
+  export ftp_proxy=${PROXY}
+}
+
+function unset_proxy() 
+{
+  unset https_proxy;
+  unset http_proxy;
+  unset HTTP_PROXY;
+  unset ftp_proxy;
+}
+
+function quiet  { $* > /dev/null;}
+function silent  { $* > /dev/null 2>&1;}
+ 
+function xopy_config()
+{
+  srcDir="${PUSER}@${DEV_MACHINE}:${PHOME}/"
+  destDir="${HOME}"
+  echo "scp -r ${srcDir} ${destDir}"
+  silent scp -r $srcDir $destDir;
+  sb
+}
+
+function functionExists()
+{
+  if [ -n "$(type -t $1)" ] && [ "$(type -t $1)" == "function" ]; then
+      return 0;
+  else
+      return 1;
+  fi
+}
+
+function rr()
+{
+  functionExists "rroot";
+  if [[ $? -eq 0 ]]; then
+      rroot $*;
+  else
+      sudo bash -c "$* ";
+  fi
+}
+
+#------------------------------Other Functions---------------------------------#
+
+# Open latest crash dump
+function crashl()
+{
+  local cmd=""
+  case $osshrt in 
+    lin )
+      pu /var/crash; cmd=$(ls -t | head -n1); po;;
+    sol )
+      cmd=$(rr ls -t /var/crash/data | head -n1);;
+  esac
+  crasho $cmd;
+}
+
+# Open provided crash dump
+function crasho()
+{
+  if [ "$#" == "0" ]; then
+   echo "crasho <vmcore dir name>"
+   echo " Example: 729978cb-21c2-4bc3-abb2-b6be323f8f7f"
+   return 1
+  fi
+
+  local cmd=""
+  case $osshrt in 
+    lin )
+      cmd="crash /var/crash/${1}/vmcore ";
+      cmd+="/usr/lib/debug/lib/modules/$(uname -r)/vmlinux";;
+    sol )
+      cmd="mdb /var/crash/data/${1}/vmcore.*";;
+  esac
+  echo $cmd;
+  rr $cmd;
+}
+
+# Kernel debug features
+function kdbg-enable()
+{
+  case $os in 
+    solaris | solsparc )
+          rr pkg change-variant variant.debug.onset=true;;
+  esac
+  echo "Reboot when ready"
+}
+
+function kdbg-disable()
+{
+  case $os in 
+    solaris | solsparc )
+          rr pkg change-variant variant.debug.onset=false;;
+  esac
+  echo "Reboot when ready"
+}
+
+function kdbg-conf()
+{
+  case $os in 
+    solaris | solsparc )
+          echo " run # echo 'mod_uninstall_interval/Z 0' | mdb -kw";;
+  esac
+}
+
+function kdbg-check()
+{
+  case $os in 
+    solaris | solsparc )
+          rr pkg variant;;
+  esac
+}
+
+################################################################################
+#                            Function wrappers                                 #
+################################################################################
+
+# Grep wrapper
+function grep()
+{
+  command grep $GREP_OPTS $*;
+}
+
+# EGrep wrapper
+function egrep()
+{
+  command egrep $GREP_OPTS $*;
+}
+
+# Ls wrapper
+function ls()
+{
+  command ls $LS_OPTS $*;
+}
+
+# Dir wrapper 
+function dir()
+{
+  command dir $DIR_OPTS $*;
+}
+
+# Man wrapper
+function _colorman() {
+  env \
+    LESS_TERMCAP_mb=$(printf "\e[1;35m") \
+    LESS_TERMCAP_md=$(printf "\e[1;34m") \
+    LESS_TERMCAP_me=$(printf "\e[0m") \
+    LESS_TERMCAP_se=$(printf "\e[0m") \
+    LESS_TERMCAP_so=$(printf "\e[7;40m") \
+    LESS_TERMCAP_ue=$(printf "\e[0m") \
+    LESS_TERMCAP_us=$(printf "\e[1;33m") \
+      "$@"
+}
+function man() { _colorman man "$@"; }
