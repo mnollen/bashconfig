@@ -184,7 +184,7 @@ case "$OS" in
           
           # ls
           export LS_COLORS='di=1;34:ln=32:so=30:pi=30:ex=31:bd=30;47:cd=30:su=31:sg=31:tw=34:ow=34'
-          export LS_OPTS+='--color=auto' 
+          export LS_OPTS+='--color=always' 
 
           # less
           export LESS="--RAW-CONTROL-CHARS"
@@ -193,10 +193,10 @@ case "$OS" in
           [[ -f ~/.LESS_TERMCAP ]] && . ~/.LESS_TERMCAP
 
           # Use colors for grep
-          export GREP_OPTS+='--color=auto' GREP_COLOR='0;36'
+          export GREP_OPTS+='--color=always' GREP_COLOR='0;36'
 
           # dir
-          export DIR_OPTS+='--color=auto'
+          export DIR_OPTS+='--color=always'
         fi
         ;;
     "Darwin"|"FreeBSD")
@@ -208,7 +208,7 @@ case "$OS" in
         # Use colors for less, man, etc.
         [[ -f ~/.LESS_TERMCAP ]] && . ~/.LESS_TERMCAP
 
-        export GREP_OPTS+='--color=auto' GREP_COLOR='0;36'
+        export GREP_OPTS+='--color=always' GREP_COLOR='0;36'
         ;;
 esac
 
