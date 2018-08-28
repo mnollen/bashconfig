@@ -50,7 +50,7 @@ fi
 [[ ${-#*i}  = ${-} ]] && return  # exit early
 
 ################################################################################
-#                              HOST SPECIFIC                                   #
+#                                OS SPECIFIC                                   #
 ################################################################################
 
 # The following 2 lines facilitate calling the same bash config
@@ -247,14 +247,14 @@ alias lsts='      ls | grep suc'
 alias lstrs='     ls -R | grep suc'
 alias lstds='     ls | grep -e dif -e suc'
 alias lstrds='    ls -R | grep -e dif -e suc'
-alias lsdev='     ls -l /dev/xvd*'
+alias lsdev='     ls -l /dev/sd*'
 
 alias pu='        pushd > /dev/null 2>&1'
 alias po='        popd  > /dev/null 2>&1'
 alias findn='     find . -name '
 alias ssh='       ssh -Y '
 alias sb='        source $PHOME/.bash_profile'
-alias fstab='     /etc/fstab'
+alias fstab='     $EDITOR /etc/fstab'
 alias mkdir='     mkdir -p'
 alias yum='       yum -y'
 alias dmesg='     dmesg -H'
@@ -504,7 +504,12 @@ function rr()
   fi
 }
 
-#------------------------------Other Functions---------------------------------#
+# Start VNC session
+function vncstart()
+{
+  vncserver -kill :1
+  vncserver -geometry 1920x1080 -IdleTimeout=0;
+}
 
 # Open latest crash dump
 function crashl()
