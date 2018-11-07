@@ -621,3 +621,14 @@ function _colorman() {
       "$@"
 }
 function man() { _colorman man "$@"; }
+
+# Su wrapper 
+function su()
+{
+  functionExists "rroot";
+  if [[ $? -eq 0 ]]; then
+      rroot su $* -p;
+  else
+      command su "$* " -p;
+  fi
+}
