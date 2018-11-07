@@ -110,15 +110,13 @@ if [ "$HOSTNAME" = "$PHOST" ]; then
   # Aliases
   alias emac='  emacs -nw'
   alias vim='   emacs -nw'
-  alias e='     emacs'
-  alias ebash=' emacs ${PHOME}/personal/bash/bash_profile'
+  alias e='     emacs_fork'
+  alias ebash=' emacs_fork ${PHOME}/personal/bash/bash_profile'
   alias cscope='/usr/bin/cscope'
 
   # Exports
-  export EDITOR='emacs -nw'
-
+  export EDITOR='emacs_fork'
 else
-
   export EDITOR=vim
 fi
 
@@ -279,6 +277,11 @@ echo $DISPLAY > $PHOME/.display
 ################################################################################
 #                                 Functions                                    #
 ################################################################################
+
+function emacs_fork()
+{
+  emacs $* &
+}
 
 function __prompt()    { EXIT="$?"
     title_set  
