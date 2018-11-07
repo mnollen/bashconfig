@@ -53,8 +53,8 @@ fi
 #                                OS SPECIFIC                                   #
 ################################################################################
 
-# The following 2 lines facilitate calling the same bash config
-# even when changing user, make sure this are defined previously
+# The following lines facilitate calling the same bash config
+# even when changing user, make sure they are defined previously
 if [ -z ${PUSER+x} ]; then
   echo "defining user"
   PUSER=$USER;
@@ -63,7 +63,10 @@ if [ -z ${PHOST+x} ]; then
   echo "defining hostname"
   PHOST=$HOSTNAME;
 fi
-export PHOME="/home/${PUSER}"
+if [ -z ${PHOME+x} ]; then
+  echo "defining home"
+  export PHOME="/home/${PUSER}"
+fi
 
 UNAME=`       uname -a`
 KERNEL=`      uname -r`
