@@ -115,7 +115,7 @@ if [ "$HOSTNAME" = "$PHOST" ]; then
   alias cscope='/usr/bin/cscope'
 
   # Exports
-  export EDITOR='emacs_fork'
+  export EDITOR=emacs_fork
 else
   export EDITOR=vim
 fi
