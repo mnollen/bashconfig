@@ -123,7 +123,7 @@ if [ "$HOSTNAME" = "$PHOST" ]; then
   alias cscope='/usr/bin/cscope'
 
   # Exports
-  export EDITOR=emacs_fork
+  export EDITOR='emacs -nw'
 else
   export EDITOR=vim
 fi
@@ -372,7 +372,7 @@ function ps1_set()
 # Open file name in sub path
 function of()
 { 
-  for file in $(find . -name "*${*}*" )
+  for file in $(find . -name "$*" )
   do
     if [[ "$file" =~ "bin" ]]; then continue; fi;
     if [[ "$file" =~ "dist" ]]; then continue; fi;
