@@ -49,6 +49,14 @@ then
 fi
 [[ ${-#*i}  = ${-} ]] && return  # exit early
 
+# Exit for TRAMP
+# Add the following lines to .emacs
+# (setq tramp-terminal-type "tramp")
+# (setq tramp-default-method "ssh")
+if [[ $TERM == *tramp* ]]; then
+    return 0; # exit early
+fi
+
 ################################################################################
 #                                OS SPECIFIC                                   #
 ################################################################################
