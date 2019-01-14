@@ -292,17 +292,19 @@ function emacs_fork()
 }
 
 function __prompt()    { EXIT="$?"
-    title_set  
-    timer_stop
-    ps1_set
-    # Print DONE on title after a long process run
-    if [ ${runtime} -ge 180 ]; then
-	# TO-DO Avoid printing DONE for some cmds
-        # emacs, vim, gdb, crash, tail
+    			 title_set  
+    			 timer_stop
+    			 ps1_set
+    			 # Print DONE on title after a long process run
+    	 	 	 if [ ${runtime} -ge 180 ]; then
+			 # TO-DO Avoid printing DONE for some cmds
+        		 # emacs, vim, gdb, crash, tail
                            title_done
                          fi
-                         #MACRO ~mnollen/personal/macro
-			 bmacro
+                         #MACRO $PHOME/bin/macroscript.sh
+			 if [ -f $PHOME/macroscript.sh ]; then
+			   bmacro
+			 fi
                        }
 function expath        { if [[ $PATH != *":/sbin:/usr/sbin:/usr/bin"* ]]; then
                             export PATH=${PATH}:/sbin:/usr/sbin:/usr/bin; 
