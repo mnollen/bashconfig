@@ -86,8 +86,8 @@ function mstart        { MSTART="record";
                            chmod 755 $MFILE;
                          fi
 		         truncate -s 0 $MFILE;
-                         echo "#!${0} -i" > $MFILE;
-                         echo "source ${PHOME}/bin/macroscript;" >> $MFILE;
+                         echo "#!/bin/bash" > $MFILE;
+                         echo "source ${PHOME}/bin/macroscript.sh;" >> $MFILE;
                          echo "source ${PHOME}/.bash_profile;" >> $MFILE;
                          echo "shopt -s expand_aliases;" >> $MFILE;
 			 return 1; #To avoid recording this cmd
