@@ -510,6 +510,19 @@ function functionExists()
   fi
 }
 
+# Check if environment variable exists 
+# Usage   testVar $HOME ${!HOME@}
+function testVar()
+{
+  var=$1
+  varname=$2
+  if [[ -z "${var}" ]]; then
+     echo "Element $varname does not exist.";
+     return 1; 
+  fi
+  return 0;
+}
+
 function rr()
 {
   functionExists "rroot";
@@ -564,35 +577,35 @@ function crasho()
 # Kernel debug features
 function kdbg-enable()
 {
-  case $os in 
-    solaris | solsparc )
-          rr pkg change-variant variant.debug.onset=true;;
+  case $osshrt in 
+    sol )
+      rr pkg change-variant variant.debug.onset=true;;
   esac
   echo "Reboot when ready"
 }
 
 function kdbg-disable()
 {
-  case $os in 
-    solaris | solsparc )
-          rr pkg change-variant variant.debug.onset=false;;
+  case $osshrt in 
+    sol )
+      rr pkg change-variant variant.debug.onset=false;;
   esac
   echo "Reboot when ready"
 }
 
 function kdbg-conf()
 {
-  case $os in 
-    solaris | solsparc )
-          echo " run # echo 'mod_uninstall_interval/Z 0' | mdb -kw";;
+  case $osshrt in 
+    sol )
+      echo " run # echo 'mod_uninstall_interval/Z 0' | mdb -kw";;
   esac
 }
 
 function kdbg-check()
 {
-  case $os in 
-    solaris | solsparc )
-          rr pkg variant;;
+  case $osshrt in 
+    sol )
+      rr pkg variant;;
   esac
 }
 
