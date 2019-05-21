@@ -302,7 +302,7 @@ function __prompt()    { EXIT="$?"
                            title_done
                          fi
                          #MACRO $PHOME/bin/macroscript.sh
-			 if [ -f $PHOME/macroscript.sh ]; then
+			 if [ -f $PHOME/bin/macroscript.sh ]; then
 			   bmacro
 			 fi
                        }
